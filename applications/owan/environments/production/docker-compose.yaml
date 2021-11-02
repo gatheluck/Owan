@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  owan-broker:
+    restart: always
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    build:
+      context: ../../
+      dockerfile: environments/development/Dockerfile
+    links:
+      - redis
+    ports:
+      - "8000:8000"
+    command: poetry run gunicorn 'src.wsgi:main()' -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+  redis:
+    image: redis:6.0-alpine
+    restart: always
