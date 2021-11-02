@@ -13,7 +13,7 @@ services:
       - redis
     ports:
       - "8000:8000"
-    command: poetry run gunicorn 'src.wsgi:main()' -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+    command: poetry run gunicorn 'owan.wsgi:main()' -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
   redis:
     image: redis:6.0-alpine
     restart: always

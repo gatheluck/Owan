@@ -5,11 +5,11 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import Final
 
-import src.views.routing
+import owan.views.routing
 
 
 def main() -> fastapi.FastAPI:
     app: Final = fastapi.FastAPI()
-    src.views.routing.add_routes(app)
+    owan.views.routing.add_routes(app)
 
     return app
