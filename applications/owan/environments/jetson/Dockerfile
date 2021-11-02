@@ -36,3 +36,5 @@ RUN pip3 install poetry \
 WORKDIR /home/gatheluck/owan/
 COPY Makefile pyproject.toml .flake8 ./
 RUN poetry install
+
+COPY src src
