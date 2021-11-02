@@ -1,5 +1,7 @@
 import sys
+
 import fastapi
+
 if sys.version_info >= (3, 8):
     from typing import Final
 else:
