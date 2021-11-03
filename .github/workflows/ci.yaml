@@ -3,7 +3,7 @@ name: CI
 on: [pull_request]
 
 env:
-  DOCKER_COMPOSE_DIRECTORY: environments/continuous_integration
+  DOCKER_COMPOSE_DIRECTORY: applications/environments/continuous_integration
   COMPOSE_DOCKER_CLI_BUILD: 1
   DOCKER_BUILDKIT: 1
 
