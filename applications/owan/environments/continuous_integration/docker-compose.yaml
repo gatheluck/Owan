@@ -5,6 +5,6 @@ services:
     restart: always
     build:
       context: ../../
-      dockerfile: environments/continuous-integration/Dockerfile
+      dockerfile: environments/continuous_integration/Dockerfile
     ports:
       - "8000:8000"
