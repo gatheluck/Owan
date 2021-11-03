@@ -19,6 +19,9 @@ jobs:
       working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
     - run: docker-compose up -d owan
       working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
+    - name: Wait 15 seconds so that container is up and running
+      run: sleep 15
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
 
     # pytest-cov export coverage data to a file
     # However, the directory made by actions/checkout does not allow write
