@@ -31,3 +31,6 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 
 RUN mkdir -p /home/gatheluck/owan/
 WORKDIR /home/gatheluck/owan/
 COPY Makefile pyproject.toml .flake8 ./
+
+COPY owan owan
+COPY tests tests

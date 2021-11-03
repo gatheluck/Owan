@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  owan:
+    restart: always
+    build:
+      context: ../../
+      dockerfile: environments/continuous_integration/Dockerfile
+    ports:
+      - "8000:8000"
+    stdin_open: true
+    tty: true

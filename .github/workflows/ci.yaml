@@ -1,0 +1,44 @@
+name: CI
+
+on: [pull_request]
+
+env:
+  DOCKER_COMPOSE_DIRECTORY: applications/owan/environments/continuous_integration
+  COMPOSE_DOCKER_CLI_BUILD: 1
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v2
+    - run: pwd && docker-compose --version && docker --version
+
+    - run: docker-compose build --parallel owan
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
+    - run: docker-compose up -d owan
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
+    - name: Wait 15 seconds so that container is up and running
+      run: sleep 15
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
+
+    # pytest-cov export coverage data to a file
+    # However, the directory made by actions/checkout does not allow write
+    # chmod is needed to resolve above problem
+    - run: chmod 777 .
+
+    - run: docker-compose exec -T owan poetry install --no-interaction
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
+
+    - run: docker-compose exec -T owan make black
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
+    - run: docker-compose exec -T owan make flake8
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}    
+    - run: docker-compose exec -T owan make isort
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
+    - run: docker-compose exec -T owan make mypy
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}
+
+    - run: docker-compose exec -T owan make test
+      working-directory: ${{ env.DOCKER_COMPOSE_DIRECTORY }}

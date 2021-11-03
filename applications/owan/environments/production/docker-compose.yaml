@@ -8,7 +8,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     build:
       context: ../../
-      dockerfile: environments/development/Dockerfile
+      dockerfile: environments/production/Dockerfile
     links:
       - redis
     ports:

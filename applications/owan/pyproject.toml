@@ -13,6 +13,9 @@ celery = {extras = ["redis"], version = "^5.1.2"}
 uvicorn = {extras = ["standard"], version = "^0.15.0"}
 gunicorn = "^20.1.0"
 fastapi = "^0.70.0"
+dataclasses = "^0.8"
+types-dataclasses = "^0.6.1"
+python-multipart = "^0.0.5"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.910"
@@ -37,7 +40,7 @@ check_untyped_defs = true
 disallow_any_generics = true
 disallow_incomplete_defs = true
 disallow_subclassing_any = true
-disallow_untyped_calls = true
+disallow_untyped_calls = false
 disallow_untyped_decorators = true
 disallow_untyped_defs = false
 no_implicit_optional = true
