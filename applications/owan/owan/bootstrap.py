@@ -14,12 +14,9 @@ else:
 import owan.bootstrap
 import owan.domain
 import owan.settings
+import owan.tasks
 
-logger: Final = logging.Logger(__name__)
-
-print(owan)
-print(owan.domain)
-print("---------")
+logger: Final = logging.getLogger("uvicorn")
 
 
 def domain_factory(settings: owan.settings.Settings) -> owan.domain.Domain:
