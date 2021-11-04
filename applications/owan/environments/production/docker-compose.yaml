@@ -13,7 +13,17 @@ services:
       - redis
     ports:
       - "8000:8000"
+    stdin_open: true
+    tty: true
     command: poetry run gunicorn 'owan.wsgi:main()' -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+  owan-worker:
+    restart: always
+    build:
+      context: ../../
+      dockerfile: environments/production/Dockerfile
+    links:
+      - redis
+    command: poetry run celery --app owan.worker worker --pool solo --concurrency 1
   redis:
     image: redis:6.0-alpine
     restart: always

@@ -1,5 +1,13 @@
 TEST-WORKERS=2
 
+.PHONY: run
+run:
+	poetry run gunicorn 'owan.wsgi:main()' -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+
+.PHONY: run-worker
+run-worker:
+	poetry run celery --app owan.worker worker --pool solo --concurrency 1
+
 .PHONY: black
 black:
 	poetry run black --check owan tests

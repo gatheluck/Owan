@@ -12,14 +12,17 @@ else:
 import owan.bootstrap
 import owan.settings
 
-logger: Final = logging.Logger(__name__)
+logger: Final = logging.getLogger("uvicorn")
 
 
 def _predict() -> None:
-    logger.error("predict is executed form TaskQueue")
-
     with owan.bootstrap.domain(owan.settings.settings()) as domain:
         domain.task_worker.predict()
+
+
+def _test_predict(image_path: str) -> None:
+    with owan.bootstrap.domain(owan.settings.settings()) as domain:
+        domain.task_worker.test_predict(image_path)
 
 
 class TaskQueue:
@@ -27,10 +30,16 @@ class TaskQueue:
 
     def __init__(self, celeryapp: celery.Celery) -> None:
         self._predict: Final = celeryapp.task(_predict)
+        self._test_predict: Final = celeryapp.task(_test_predict)
 
     def predict(self) -> celery.result.AsyncResult:
         """Wrapper of Celery task. Execute prediction."""
         return self._predict.delay()
+
+    def test_predict(self, image_path: str) -> celery.result.AsyncResult:
+        """Wrapper of Celery task. Execute test prediction."""
+        logger.info("Enqueue test_predict.")
+        return self._test_predict.delay(image_path)
 
 
 class Factory:
