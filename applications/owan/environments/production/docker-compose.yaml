@@ -1,21 +1,6 @@
 version: "3.8"
 
 services:
-  web:
-    container_name: web
-    image: nginx:alpine
-    depends_on:
-      # `owan-broker` should run beforehand. 
-      - owan-broker
-    ports:
-      # port mapping: (host OS port:nginx container port)
-      - "80:80"
-    volumes:
-      # volume mount: (host OS path:container path)
-      - ../../../owan/web/conf.d:/etc/nginx/conf.d
-    networks:
-      - nginx_network
-
   owan-broker:
     container_name: owan-broker
     restart: always
@@ -24,25 +9,23 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
     build:
       context: ../../
-      dockerfile: environments/production/Dockerfile
+      dockerfile: environments/jetson/Dockerfile
     links:
       - redis
     ports:
       - "8000:8000"
     stdin_open: true
     tty: true
-    command: poetry run gunicorn 'owan.wsgi:main()' -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000
+    command: poetry run gunicorn 'owan.wsgi:main()' -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --log-level debug
     expose:
       - 8000
-    networks:
-      - nginx_network
 
   owan-worker:
     container_name: owan-worker
     restart: always
     build:
       context: ../../
-      dockerfile: environments/production/Dockerfile
+      dockerfile: environments/jetson/Dockerfile
     links:
       - redis
     command: poetry run celery --app owan.worker worker --pool solo --concurrency 1
@@ -51,7 +34,3 @@ services:
     container_name: redis
     image: redis:6.0-alpine
     restart: always
-
-networks:
-  nginx_network:
-    driver: bridge
