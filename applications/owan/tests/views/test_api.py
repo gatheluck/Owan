@@ -1,7 +1,6 @@
 import http
-import shutil
 import unittest.mock
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock
 
 import fastapi
 import fastapi.testclient
@@ -9,7 +8,6 @@ import pytest
 
 import owan.views.api
 import owan.views.routing
-from owan.views.api._lib import save_upload_file
 
 
 def mock_domain_factory_factory(mock_domain=unittest.mock.MagicMock()):
@@ -32,15 +30,29 @@ def dummy_client():
     return f
 
 
-def test_predict(dummy_client, binary_image_factory):
+def test_predict(dummy_client, binary_image_factory, image_path_factory):
     mock_domain = unittest.mock.MagicMock()
     client = dummy_client(mock_domain)
     files = {"file": binary_image_factory()}
+    expected = {"recieved_file": str(image_path_factory().name)}
 
     response = client.post("/predict", files=files)
     assert response.status_code == http.HTTPStatus.OK
-    assert response.json() == {}
+    assert response.json() == expected
     mock_domain.task_queue.predict.assert_called_once_with()
+
+
+def test_test_predict(dummy_client, binary_image_factory, image_path_factory):
+    mock_domain = unittest.mock.MagicMock()
+    client = dummy_client(mock_domain)
+    files = {"file": binary_image_factory()}
+    expected_arg = str(image_path_factory().name)
+    expected_response = {"recieved_file": str(image_path_factory().name)}
+
+    response = client.post("/predict/test", files=files)
+    assert response.status_code == http.HTTPStatus.OK
+    assert response.json() == expected_response
+    mock_domain.task_queue.test_predict.assert_called_once_with(expected_arg)
 
 
 def test_health(dummy_client):
@@ -50,21 +62,3 @@ def test_health(dummy_client):
     response = client.get("/health")
     assert response.status_code == http.HTTPStatus.OK
     assert response.json() == {"health": "ok"}
-
-
-def test_save_upload_file(input_store_path_factory, binary_image_factory):
-    input_store_path = input_store_path_factory()
-    if input_store_path.exists():
-        shutil.rmtree(input_store_path)
-
-    filename = "test_image.png"
-    job_id = "job-id"
-    dt_string = "dt-string"
-    mock_upload_file = MagicMock()
-    type(mock_upload_file).file = PropertyMock(return_value=binary_image_factory())
-    type(mock_upload_file).filename = PropertyMock(return_value=filename)
-    save_upload_file(mock_upload_file, input_store_path, job_id, dt_string)
-
-    excepted_path = input_store_path / f"{dt_string}_{job_id}_{filename}"
-    assert excepted_path.exists()
-    shutil.rmtree(input_store_path)
