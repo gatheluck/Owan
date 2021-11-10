@@ -1,6 +1,7 @@
 import dataclasses
 import os
 import pathlib
+from typing import Set
 
 
 @dataclasses.dataclass(frozen=True)
@@ -14,9 +15,15 @@ class InputStoreSetting:
 
 
 @dataclasses.dataclass(frozen=True)
+class IoSetting:
+    input_supported_extensions: Set[str]
+
+
+@dataclasses.dataclass(frozen=True)
 class Settings:
     redis: RedisSetting
     input_store: InputStoreSetting
+    io: IoSetting
 
 
 def settings() -> Settings:
@@ -24,5 +31,8 @@ def settings() -> Settings:
         redis=RedisSetting(dns=os.getenv("REDIS_DSN", "redis://redis/0")),
         input_store=InputStoreSetting(
             path=pathlib.Path(os.getenv("INPUT_STORE_DIR_PATH", "./tmp/input_store"))
+        ),
+        io=IoSetting(
+            input_supported_extensions={".png", ".jpg", ".jpeg"},
         ),
     )
