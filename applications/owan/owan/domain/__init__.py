@@ -8,6 +8,8 @@ if sys.version_info >= (3, 8):
 else:
     from typing_extensions import Final
 
+from owan.domain.io import IoHandler
+
 logger: Final = logging.getLogger("uvicorn")
 
 
@@ -17,10 +19,11 @@ class Domain:
         broker: Any,  # owan.tasks.TaskQueue
     ) -> None:
         self.task_queue: Final = broker
-        self.task_worker: Final = _TaskWorker()
+        self.task_worker: Final = TaskWorker()
+        self.io: Final = IoHandler()
 
 
-class _TaskWorker:
+class TaskWorker:
     """TaskWorker subdomain class which execute tasks asked from _TaskQueue"""
 
     def __init__(self) -> None:
