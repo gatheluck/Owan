@@ -16,6 +16,7 @@ fastapi = "^0.70.0"
 dataclasses = "^0.8"
 types-dataclasses = "^0.6.1"
 python-multipart = "^0.0.5"
+Pillow = "^8.4.0"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.910"

@@ -21,7 +21,11 @@ logger: Final = logging.getLogger("uvicorn")
 
 def domain_factory(settings: owan.settings.Settings) -> owan.domain.Domain:
     broker: Final = owan.tasks.Factory(broker=settings.redis.dns).broker
-    return owan.domain.Domain(broker=broker)
+    return owan.domain.Domain(
+        broker=broker,
+        input_supported_extention=settings.io.input_supported_extensions,
+        output_image_compress_quality=settings.io.output_image_compress_quality,
+    )
 
 
 @contextlib.contextmanager

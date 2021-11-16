@@ -17,6 +17,7 @@ class InputStoreSetting:
 @dataclasses.dataclass(frozen=True)
 class IoSetting:
     input_supported_extensions: Set[str]
+    output_image_compress_quality: int
 
 
 @dataclasses.dataclass(frozen=True)
@@ -34,5 +35,6 @@ def settings() -> Settings:
         ),
         io=IoSetting(
             input_supported_extensions={".png", ".jpg", ".jpeg"},
+            output_image_compress_quality=30,
         ),
     )

@@ -3,6 +3,7 @@ import pathlib
 import pytest
 
 input_path = pathlib.Path("./tests/samples/valid_input_01.png")
+output_path = pathlib.Path("./tests/tmp/output.jpeg")
 invalid_input_path = pathlib.Path("./tests/samples/invalid_input_01.png")
 unsupported_input_path = pathlib.Path("./tests/samples/unsupported_input_01.png")
 input_store_path = pathlib.Path("./tests/tmp/input_store")
@@ -11,6 +12,14 @@ input_store_path = pathlib.Path("./tests/tmp/input_store")
 @pytest.fixture
 def image_path_factory():
     def f(image_path=input_path):
+        return image_path
+
+    return f
+
+
+@pytest.fixture
+def output_image_path_factory():
+    def f(image_path=output_path):
         return image_path
 
     return f
