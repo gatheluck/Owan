@@ -1,13 +1,14 @@
 import logging
 import sys
 import time
-from typing import Any
+from typing import Any, Set
 
 if sys.version_info >= (3, 8):
     from typing import Final
 else:
     from typing_extensions import Final
 
+from owan.domain.compress import Compressor
 from owan.domain.io import IoHandler
 
 logger: Final = logging.getLogger("uvicorn")
@@ -17,10 +18,15 @@ class Domain:
     def __init__(
         self,
         broker: Any,  # owan.tasks.TaskQueue
+        input_supported_extention: Set[str],
+        output_image_compress_quality: int,
     ) -> None:
         self.task_queue: Final = broker
         self.task_worker: Final = TaskWorker()
         self.io: Final = IoHandler()
+        self.compressor: Final = Compressor(
+            input_supported_extention, output_image_compress_quality
+        )
 
 
 class TaskWorker:
