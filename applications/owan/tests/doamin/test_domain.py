@@ -12,11 +12,13 @@ class TestTaskQueue:
             broker=unittest.mock.MagicMock(),
             input_supported_extention=unittest.mock.MagicMock(),
             output_image_compress_quality=unittest.mock.MagicMock(),
+            storage=unittest.mock.MagicMock(),
         ):
             return owan.domain.Domain(
                 broker=broker,
                 input_supported_extention=input_supported_extention,
                 output_image_compress_quality=output_image_compress_quality,
+                storage=storage,
             )
 
         return f
