@@ -10,6 +10,7 @@ else:
 
 from owan.domain.compress import Compressor
 from owan.domain.io import IoHandler
+from owan.libs.storage import Storage
 
 logger: Final = logging.getLogger("uvicorn")
 
@@ -20,6 +21,7 @@ class Domain:
         broker: Any,  # owan.tasks.TaskQueue
         input_supported_extention: Set[str],
         output_image_compress_quality: int,
+        storage: Storage,
     ) -> None:
         self.task_queue: Final = broker
         self.task_worker: Final = TaskWorker()
@@ -27,6 +29,7 @@ class Domain:
         self.compressor: Final = Compressor(
             input_supported_extention, output_image_compress_quality
         )
+        self.storage: Final = storage
 
 
 class TaskWorker:
