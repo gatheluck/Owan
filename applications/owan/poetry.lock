@@ -99,6 +99,38 @@ python2 = ["typed-ast (>=1.4.2)"]
 uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
+name = "boto3"
+version = "1.20.7"
+description = "The AWS SDK for Python"
+category = "main"
+optional = false
+python-versions = ">= 3.6"
+
+[package.dependencies]
+botocore = ">=1.23.7,<1.24.0"
+jmespath = ">=0.7.1,<1.0.0"
+s3transfer = ">=0.5.0,<0.6.0"
+
+[package.extras]
+crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
+
+[[package]]
+name = "botocore"
+version = "1.23.7"
+description = "Low-level, data-driven core of boto 3."
+category = "main"
+optional = false
+python-versions = ">= 3.6"
+
+[package.dependencies]
+jmespath = ">=0.7.1,<1.0.0"
+python-dateutil = ">=2.1,<3.0.0"
+urllib3 = ">=1.25.4,<1.27"
+
+[package.extras]
+crt = ["awscrt (==0.12.5)"]
+
+[[package]]
 name = "cached-property"
 version = "1.5.2"
 description = "A decorator for caching properties in classes."
@@ -398,6 +430,14 @@ colors = ["colorama (>=0.4.3,<0.5.0)"]
 plugins = ["setuptools"]
 
 [[package]]
+name = "jmespath"
+version = "0.10.0"
+description = "JSON Matching Expressions"
+category = "main"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+
+[[package]]
 name = "kombu"
 version = "5.1.0"
 description = "Messaging library for Python."
@@ -612,6 +652,17 @@ pytest = ">=4.6"
 testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtualenv"]
 
 [[package]]
+name = "python-dateutil"
+version = "2.8.2"
+description = "Extensions to the standard Python datetime module"
+category = "main"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
+
+[package.dependencies]
+six = ">=1.5"
+
+[[package]]
 name = "python-dotenv"
 version = "0.19.1"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -685,6 +736,20 @@ urllib3 = ">=1.21.1,<1.27"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)", "win-inet-pton"]
 use_chardet_on_py3 = ["chardet (>=3.0.2,<5)"]
+
+[[package]]
+name = "s3transfer"
+version = "0.5.0"
+description = "An Amazon S3 Transfer Manager"
+category = "main"
+optional = false
+python-versions = ">= 3.6"
+
+[package.dependencies]
+botocore = ">=1.12.36,<2.0a.0"
+
+[package.extras]
+crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
 
 [[package]]
 name = "six"
@@ -765,7 +830,7 @@ python-versions = "*"
 name = "urllib3"
 version = "1.26.7"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
@@ -853,7 +918,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.6.2,<3.7"
-content-hash = "990e2e60bc0ec19ff14388f7d3189136ec88b2ca5200b5278f46362bfee484d7"
+content-hash = "cd8cb394ecf804a2913c3142ad302fd0cc4d7699871d8c4b4e042f23c2dea9e2"
 
 [metadata.files]
 amqp = [
@@ -883,6 +948,14 @@ billiard = [
 black = [
     {file = "black-21.9b0-py3-none-any.whl", hash = "sha256:380f1b5da05e5a1429225676655dddb96f5ae8c75bdf91e53d798871b902a115"},
     {file = "black-21.9b0.tar.gz", hash = "sha256:7de4cfc7eb6b710de325712d40125689101d21d25283eed7e9998722cf10eb91"},
+]
+boto3 = [
+    {file = "boto3-1.20.7-py3-none-any.whl", hash = "sha256:d3750ebf56b25ec54f0bbb10c1fa73c973770fba28e9bc04ba13f59d4a025812"},
+    {file = "boto3-1.20.7.tar.gz", hash = "sha256:cd386635d01c3474c6a2c028af4b7d36d9a45d29bfc1f7766189daefe3bbf533"},
+]
+botocore = [
+    {file = "botocore-1.23.7-py3-none-any.whl", hash = "sha256:39f9880eee40e170f8098a7cabe6de8689faa2f0313a03972f7a7c0ccc8b0e84"},
+    {file = "botocore-1.23.7.tar.gz", hash = "sha256:50c3bd89849f257915f2d161e056ce55ff318712077565113c435547bfea4073"},
 ]
 cached-property = [
     {file = "cached-property-1.5.2.tar.gz", hash = "sha256:9fa5755838eecbb2d234c3aa390bd80fbd3ac6b6869109bfc1b499f7bd89a130"},
@@ -1058,6 +1131,10 @@ isort = [
     {file = "isort-5.9.3-py3-none-any.whl", hash = "sha256:e17d6e2b81095c9db0a03a8025a957f334d6ea30b26f9ec70805411e5c7c81f2"},
     {file = "isort-5.9.3.tar.gz", hash = "sha256:9c2ea1e62d871267b78307fe511c0838ba0da28698c5732d54e2790bf3ba9899"},
 ]
+jmespath = [
+    {file = "jmespath-0.10.0-py2.py3-none-any.whl", hash = "sha256:cdf6525904cc597730141d61b36f2e4b8ecc257c420fa2f4549bac2c2d0cb72f"},
+    {file = "jmespath-0.10.0.tar.gz", hash = "sha256:b85d0567b8666149a93172712e68920734333c0ce7e89b78b3e987f71e5ed4f9"},
+]
 kombu = [
     {file = "kombu-5.1.0-py3-none-any.whl", hash = "sha256:e2dedd8a86c9077c350555153825a31e456a0dc20c15d5751f00137ec9c75f0a"},
     {file = "kombu-5.1.0.tar.gz", hash = "sha256:01481d99f4606f6939cdc9b637264ed353ee9e3e4f62cfb582324142c41a572d"},
@@ -1206,6 +1283,10 @@ pytest-cov = [
     {file = "pytest-cov-3.0.0.tar.gz", hash = "sha256:e7f0f5b1617d2210a2cabc266dfe2f4c75a8d32fb89eafb7ad9d06f6d076d470"},
     {file = "pytest_cov-3.0.0-py3-none-any.whl", hash = "sha256:578d5d15ac4a25e5f961c938b85a05b09fdaae9deef3bb6de9a6e766622ca7a6"},
 ]
+python-dateutil = [
+    {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
+    {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
+]
 python-dotenv = [
     {file = "python-dotenv-0.19.1.tar.gz", hash = "sha256:14f8185cc8d494662683e6914addcb7e95374771e707601dfc70166946b4c4b8"},
     {file = "python_dotenv-0.19.1-py2.py3-none-any.whl", hash = "sha256:bbd3da593fc49c249397cbfbcc449cf36cb02e75afc8157fcc6a81df6fb7750a"},
@@ -1297,6 +1378,10 @@ regex = [
 requests = [
     {file = "requests-2.26.0-py2.py3-none-any.whl", hash = "sha256:6c1246513ecd5ecd4528a0906f910e8f0f9c6b8ec72030dc9fd154dc1a6efd24"},
     {file = "requests-2.26.0.tar.gz", hash = "sha256:b8aa58f8cf793ffd8782d3d8cb19e66ef36f7aba4353eec859e74678b01b07a7"},
+]
+s3transfer = [
+    {file = "s3transfer-0.5.0-py3-none-any.whl", hash = "sha256:9c1dc369814391a6bda20ebbf4b70a0f34630592c9aa520856bf384916af2803"},
+    {file = "s3transfer-0.5.0.tar.gz", hash = "sha256:50ed823e1dc5868ad40c8dc92072f757aa0e653a192845c94a3b676f4a62da4c"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
