@@ -1,6 +1,8 @@
 import logging
+import pathlib
 import sys
 import time
+import uuid
 from typing import Any, Set
 
 if sys.version_info >= (3, 8):
@@ -41,6 +43,14 @@ class TaskWorker:
     def predict(self) -> None:
         logger.info("predict from _TaskWorker")
 
-    def test_predict(self, image_path: str) -> None:
+    def test_predict(self, image_path: str, storage: Storage) -> None:
         time.sleep(10)
+
+        try:
+            logger.info(f"image_path: `{image_path}` is processing")
+            key: Final = f"jetson/{str(uuid.uuid4())}/{pathlib.Path(image_path).name}"
+            storage.store(pathlib.Path(image_path), key)
+        except Exception:
+            logger.error(f"failed to store `{image_path}`.")
+
         logger.info(f"test_predict image_path: {image_path} done.")

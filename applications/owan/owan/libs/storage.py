@@ -1,109 +1,48 @@
-import base64
-import copy
-import dataclasses
+import logging
+import pathlib
+import shutil
 import sys
-import urllib.parse
-import uuid
-from typing import IO, Any, Callable, cast
+from typing import Optional
 
 if sys.version_info >= (3, 8):
-    from typing import Final, Protocol
+    from typing import Final
 else:
-    from typing_extensions import Final, Protocol
+    from typing_extensions import Final
 
 import boto3.exceptions
 import boto3.session
-import botocore.client
-import botocore.errorfactory
-import botocore.exceptions
+
+logger: Final = logging.getLogger("uvicorn")
 
 
 class Error(Exception):
     pass
 
 
-class NoSuchDirectoryError(Error):
-    """Specified directory does not exist."""
+class LocalStorage:
+    """Provide access to Local Strage."""
 
+    def __init__(self, directory: pathlib.Path) -> None:
+        self.directory: Final = directory
+        self._prepare_directory()
 
-class NoSuchBucketError(NoSuchDirectoryError):
-    """Specified bucket does not exist in S3."""
+    def _prepare_directory(self) -> None:
+        self.directory.mkdir(parents=True, exist_ok=True)
 
-
-@dataclasses.dataclass(frozen=True)
-class Key:
-    """Use for store data to Storage.
-
-    Each keys have own namespace. So there is no conflict between files
-    which have exactly same name. If you want to create the keys which
-    have same namespace, please use `fork` method.
-
-    """
-
-    namespace: uuid.UUID
-    filename: str
-
-    @classmethod
-    def deserialize(cls, serialized: str) -> "Key":
-        """Create Key class instance from string gerenated by `serialize`."""
-        namespace, filename = serialized.split(".", 1)
-
-        return cls(
-            uuid.UUID(bytes=base64.urlsafe_b64decode(namespace)),
-            base64.urlsafe_b64decode(filename).decode(),
-        )
-
-    def serialize(self) -> str:
-        """Convert instance to URL safe string.
-
-        Note:
-            We join the namespace and filename by `.` because it does not
-            used by base64.urlsafe_b64decode.
-
-        """
-        return ".".join(
-            [
-                base64.urlsafe_b64encode(self.namespace.bytes).decode(),
-                base64.urlsafe_b64encode(self.filename.encode()).decode(),
-            ]
-        )
-
-    @classmethod
-    def generate(cls, filename: str) -> "Key":
-        """Generate Key."""
-        return cls(uuid.uuid4(), filename)
-
-    def fork(self, filename: str) -> "Key":
-        """Generate Key which has same namespace."""
-        return Key(namespace=self.namespace, filename=filename)
-
-
-class Storage(Protocol):
-    def store(self, key: Key, source: IO[bytes], content_type: str) -> None:
-        """Store file-like object."""
-        ...
-
-    def generate_link(self, key: Key) -> str:
-        """Generate URL to access the file."""
-        ...
-
-    def __hash__(self) -> int:
-        ...
-
-    def __eq__(self, other: Any) -> bool:
-        ...
-
-
-# Becasue boto3 create class dynamically, it is difficult to read type for type hint.
-# So we use Any.
-S3Client = Any
-
-
-def _key_to_path(key: Key) -> str:
-    return "{}.{}".format(
-        base64.urlsafe_b64encode(key.namespace.bytes).decode(),
-        urllib.parse.quote(key.filename),
-    )
+    def store(
+        self,
+        file_path: pathlib.Path,
+        key: str,
+    ) -> None:
+        logger.info(f"try to store local: `{file_path}` to `{key}`.")
+        try:
+            save_path: Final = self.directory / key
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(file_path, save_path)
+        except Exception:
+            message: Final = "Falied to store local storage."
+            logger.error(message)
+            raise Error(message)
 
 
 class S3Storage:
@@ -115,62 +54,19 @@ class S3Storage:
         secret_key: str,
         region_name: str,
         bucket_name: str,
-        is_public: bool,
-        cache_max_age_in_seconds: int,
     ) -> None:
         self._bucket_name: Final = bucket_name
         self._region_name: Final = region_name
-        self._client: Final = self._create_s3_client(
-            access_key_id, secret_key, region_name
-        )
-        self._linker: Final = self._get_linker(is_public)
-        self._base_store_extra_args: Final = {
-            "CacheControl": f"max-age={cache_max_age_in_seconds}"
-        }
-        if is_public:
-            self._base_store_extra_args["ACL"] = "public-read"
-
-    def _get_linker(self, is_public: bool) -> Callable[[str], str]:
-        return self._link_publicly if is_public else self._link_privatly
-
-    def check_access(self) -> None:
-        """Check accessibility to S3.
-
-        Raises:
-            botocore.exceptions.ClientError: When authentication fail.
-
-        """
-        self._client.get_bucket_location(Bucket=self._bucket_name)
-
-    def _create_s3_client(
-        self, access_key_id: str, secret_key: str, region_name: str
-    ) -> S3Client:
-        """Create S3 service clients.
-
-        This method is thin wrap method of boto3.session.Session.
-        For detail please check offical docs;
-        https://boto3.amazonaws.com/v1/documentation/api/latest/reference/core/session.html?highlight=session#boto3.session.Session
-
-        Args:
-            access_key_id (str): AWS access key ID.
-            secret_key (str): AWS secret access key.
-            region_name (str): Default region when creating new connections.
-
-        Returns:
-            S3Client: Service client instance.
-
-        """
-        return boto3.session.Session(
+        self._bucket: Final = boto3.resource(
+            "s3",
             aws_access_key_id=access_key_id,
             aws_secret_access_key=secret_key,
-            region_name=region_name,
-        ).client("s3")
+        ).Bucket(bucket_name)
 
     def store(
         self,
-        key: Key,
-        source: IO[bytes],
-        content_type: str = "binary/octet-stream",
+        file_path: pathlib.Path,
+        key: str,
     ) -> None:
         """Store (upload) file-like object to S3.
 
@@ -184,50 +80,73 @@ class S3Storage:
             Error:
 
         """
-        extra_args: Final = copy.copy(self._base_store_extra_args)
-        extra_args["ContentType"] = content_type
+        logger.info(f"try to store S3: `{file_path}` to `{key}`.")
         try:
-            self._client.upload_fileobj(
-                source,
-                self._bucket_name,
-                _key_to_path(key),
-                ExtraArgs=extra_args,
+            self._bucket.upload_file(
+                Filename=str(file_path),
+                Key=key,
             )
-        except botocore.exceptions.ClientError as e:
-            error: Final = e.response["Error"]
-            if error["Code"] == "NoSuchBucket":
-                message = f"Bucket: {self._bucket_name} does not exist."
-                raise NoSuchBucketError(message) from e
-            raise Error(error["Code"], e["Message"]) from e
+        except Exception:
+            message: Final = "Falied to store S3."
+            logger.error(message)
+            raise Error(message)
 
-    def _link_privatly(self, key: str) -> str:
-        return cast(
-            str,
-            self._client.generate_presigned_url(
-                ClientMethod="get_object",
-                Params={
-                    "Bucket": self._bucket_name,
-                    "Key": key,
-                },
-                HttpMethod="GET",
-            ),
+
+class Storage:
+    def __init__(
+        self,
+        local_directory: pathlib.Path,
+        s3_access_key_id: str,
+        s3_secret_key: str,
+        s3_region_name: str,
+        s3_bucket_name: str,
+        local_only: bool = False,
+    ) -> None:
+        self._local_only: Final = local_only
+        self._local_storage: Final = LocalStorage(local_directory)
+        self._s3_storage = self._init_s3_storage(
+            s3_access_key_id,
+            s3_secret_key,
+            s3_region_name,
+            s3_bucket_name,
+            self._local_only,
         )
 
-    def _link_publicly(self, key: str) -> str:
-        return (
-            f"https://{self._bucket_name}."
-            f"s3-{self._region_name}.amazonaws.com/{key}"
-        )
+    def _init_s3_storage(
+        self,
+        s3_access_key_id: str,
+        s3_secret_key: str,
+        s3_region_name: str,
+        s3_bucket_name: str,
+        local_only: bool,
+    ) -> Optional[S3Storage]:
+        if local_only:
+            logger.info("init storage as local only mode.")
+            return None
 
-    def generate_link(self, key: Key) -> str:
-        return self._linker(_key_to_path(key))
+        try:
+            return S3Storage(
+                s3_access_key_id,
+                s3_secret_key,
+                s3_region_name,
+                s3_bucket_name,
+            )
+        except Exception:
+            logger.error("falied to initialize S3.")
+            return None
 
-    def __hash__(self) -> int:
-        return hash((self._bucket_name, self._region_name))
-
-    def __eq__(self, other: Any) -> bool:
-        return (
-            isinstance(other, self.__class__)
-            and self._bucket_name == other._bucket_name
-            and self._region_name == other._region_name
-        )
+    def store(
+        self,
+        file_path: pathlib.Path,
+        key: str,
+    ) -> None:
+        """Store file-like object."""
+        logger.info(f"store data to storage. `self._local_only`: {self._local_only}.")
+        if self._local_only:
+            self._local_storage.store(file_path, key)
+        else:
+            try:
+                self._s3_storage.store(file_path, key)  # type: ignore
+            except Exception:
+                logger.warn("Try to store S3 but failed. Try to store local storage.")
+                self._local_storage.store(file_path, key)
