@@ -23,3 +23,9 @@ def add_routes(app: fastapi.FastAPI) -> None:
         owan.views.api.predict,
         methods=["POST"],
     )
+
+    app.add_api_route(
+        "/store",
+        owan.views.api.store,
+        methods=["GET"],
+    )

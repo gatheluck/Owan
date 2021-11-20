@@ -39,20 +39,19 @@ def test_predict(dummy_client, binary_image_factory, image_path_factory):
     response = client.post("/predict", files=files)
     assert response.status_code == http.HTTPStatus.OK
     assert response.json() == expected
-    mock_domain.task_queue.predict.assert_called_once_with()
+    mock_domain.task_queue.predict.assert_called_once()
 
 
 def test_test_predict(dummy_client, binary_image_factory, image_path_factory):
     mock_domain = unittest.mock.MagicMock()
     client = dummy_client(mock_domain)
     files = {"file": binary_image_factory()}
-    expected_arg = str(image_path_factory().name)
     expected_response = {"recieved_file": str(image_path_factory().name)}
 
     response = client.post("/predict/test", files=files)
     assert response.status_code == http.HTTPStatus.OK
     assert response.json() == expected_response
-    mock_domain.task_queue.test_predict.assert_called_once_with(expected_arg)
+    mock_domain.task_queue.test_predict.assert_called_once()
 
 
 def test_health(dummy_client):

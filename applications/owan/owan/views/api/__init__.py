@@ -2,7 +2,11 @@ import functools
 import logging
 import pathlib
 import sys
+from io import BytesIO
 from typing import Iterator
+
+import boto3
+from PIL import Image
 
 if sys.version_info >= (3, 8):
     from typing import Final
@@ -89,8 +93,8 @@ async def test_predict(
     job_id: Final = _generate_job_id()
     dt_string: Final = _get_datetime_now_string()
 
-    _predict_preprocess(file, domain, settings, job_id, dt_string)
-    domain.task_queue.test_predict(str(pathlib.Path(file.filename)))
+    image_path: Final = _predict_preprocess(file, domain, settings, job_id, dt_string)
+    domain.task_queue.test_predict(str(image_path))
     return JSONResponse({"recieved_file": f"{file.filename}"})
 
 
@@ -98,3 +102,29 @@ async def health() -> JSONResponse:
     """Endpoint for health check."""
     logger.info("health is called.")
     return JSONResponse({"health": "ok"})
+
+
+async def store(
+    domain: owan.domain.Domain = fastapi.Depends(_domain_factory),
+    settings: owan.settings.Settings = fastapi.Depends(get_settings),
+) -> JSONResponse:
+    """Endpoint for aws health check."""
+    logger.info("store is called.")
+    image_path: Final = pathlib.Path("./tests/samples/valid_input_01.png")
+
+    key: Final = "hogehoge/samples"
+
+    with image_path.open(mode="rb") as f:
+        im: Final = Image.open(f).convert("RGB")
+        im_io = BytesIO()
+        im.save(im_io, "JPEG", optimize=True, quality=85)
+
+        bucket = boto3.resource(
+            "s3",
+            aws_access_key_id="AKIA5LROWJZZPI2F24UG",
+            aws_secret_access_key="ObdlFV5LaPYdcGgAXXum0JbcgBF2EJxuUfIyyNUm",
+        ).Bucket("gatheluck-test")
+
+        bucket.upload_file(str(image_path), "hogehoge/samples", key)
+
+    return JSONResponse({"aws health": "ok"})

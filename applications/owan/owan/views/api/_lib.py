@@ -33,7 +33,7 @@ def _predict_preprocess(
     settings: owan.settings.Settings,
     job_id: str,
     dt_string: str,
-) -> None:
+) -> pathlib.Path:
     """Preprocess of prediction.
 
     This function does following three things:
@@ -64,3 +64,5 @@ def _predict_preprocess(
         domain.io.validate_image(save_path, settings.io.input_supported_extensions)
     except Exception as e:
         raise HTTPException(status_code=400, detail=getattr(e, "message", str(e)))
+
+    return save_path
