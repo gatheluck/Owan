@@ -22,7 +22,7 @@ def _predict() -> None:
 
 def _test_predict(image_path: str) -> None:
     with owan.bootstrap.domain(owan.settings.settings()) as domain:
-        domain.task_worker.test_predict(image_path)
+        domain.task_worker.test_predict(image_path, domain.storage)
 
 
 class TaskQueue:

@@ -6,6 +6,8 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+    env_file:
+      - owan.env
     build:
       context: ../../
       dockerfile: environments/development/Dockerfile

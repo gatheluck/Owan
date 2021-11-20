@@ -20,22 +20,29 @@ logger: Final = logging.getLogger("uvicorn")
 
 
 def _init_storage(settings: owan.settings.StorageSettings) -> owan.libs.storage.Storage:
-    def init_s3_storage() -> owan.libs.storage.S3Storage:
-        s3: Final = owan.libs.storage.S3Storage(
-            access_key_id=settings.s3_access_key_id,
-            secret_key=settings.s3_secret_key,
-            region_name=settings.s3_region_name,
-            bucket_name=settings.s3_bucket_name,
-            is_public=settings.s3_is_public,
-            cache_max_age_in_seconds=settings.s3_cache_max_age,
-        )
-        s3.check_access()
-        return s3
 
     if settings.provider == owan.settings.StorageProvider.LOCAL:
-        raise NotImplementedError()
+        logger.info("storage try to initialize as local only mode.")
+        return owan.libs.storage.Storage(
+            local_directory=settings.local_directory,
+            s3_access_key_id=settings.s3_access_key_id,
+            s3_secret_key=settings.s3_secret_key,
+            s3_region_name=settings.s3_region_name,
+            s3_bucket_name=settings.s3_bucket_name,
+            local_only=True,
+        )
+
     if settings.provider == owan.settings.StorageProvider.S3:
-        return init_s3_storage()
+        logger.info("storage try to initialize as S3 mode.")
+        return owan.libs.storage.Storage(
+            local_directory=settings.local_directory,
+            s3_access_key_id=settings.s3_access_key_id,
+            s3_secret_key=settings.s3_secret_key,
+            s3_region_name=settings.s3_region_name,
+            s3_bucket_name=settings.s3_bucket_name,
+            local_only=False,
+        )
+
     raise owan.settings.SettingsError()
 
 
