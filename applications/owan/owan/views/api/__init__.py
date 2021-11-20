@@ -121,9 +121,9 @@ async def store(
 
         bucket = boto3.resource(
             "s3",
-            aws_access_key_id="AKIA5LROWJZZPI2F24UG",
-            aws_secret_access_key="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",
-        ).Bucket("gatheluck-test")
+            aws_access_key_id="",
+            aws_secret_access_key="",
+        ).Bucket("")
 
         bucket.upload_file(str(image_path), "hogehoge/samples", key)
 
